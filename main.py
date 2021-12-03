@@ -26,8 +26,19 @@ big_bullet.size = [10, 15]
 star = gamebox.from_image(0, -100, "images/star.png")
 star.size = [25, 25]
 
-# stores all the enemies that will be created
-enemies = []
+# declaring variables
+enemies = [] # stores all the enemies that will be created
+shooting = False
+hasBullet = False
+hasBigBullet = False
+end_screen = False
+star_moving = False
+star_count = 0
+enemy_count = 0
+score = 0
+game_play = False
+forward = True
+forward_enemy = True
 
 # creating health bar
 health_bar = gamebox.from_color(700, 550, "green", 150, 20)
@@ -35,8 +46,8 @@ health_damage = gamebox.from_color(700, 550, "gray", 150, 20)
 health_bg = gamebox.from_color(550, 550, "black", 200, 20)
 
 
-# initialize game screen
 def game_screen():
+    """Initializes game screen and resets all variables for gameplay"""
     global star_count
 
     camera.clear("black")
@@ -51,23 +62,28 @@ def game_screen():
     make_enemy() # draw the enemies
 
 
-# display enemies
 def make_enemy():
+    """Draws all enemies onto the game screen"""
     global enemies
     enemies = []
 
+    # create blue colored enemies in row 1
     blue_enemy = gamebox.from_image(20, 400, "images/blue.jpg")
     blue_enemy.size = [40, 40]
     for i in range(1, 13):
         blue_enemy = gamebox.from_image(60*i, 300, "images/blue.jpg")
         blue_enemy.size = [40, 40]
         enemies.append(blue_enemy)
+
+    # create green colored enemies in row 2
     green_enemy = gamebox.from_image(20, 250, "images/green.jpg")
     green_enemy.size = [40, 40]
     for i in range(1, 13):
         green_enemy = gamebox.from_image(60*i, 200, "images/green.jpg")
         green_enemy.size = [40, 40]
         enemies.append(green_enemy)
+
+    # create yellow colored enemies in row 3
     yellow_enemy = gamebox.from_image(20, 100, "images/yellow.jpg")
     yellow_enemy.size = [40, 40]
     for i in range(1, 13):
@@ -76,43 +92,31 @@ def make_enemy():
         enemies.append(yellow_enemy)
 
 
-shooting = False
-hasBullet = False
-hasBigBullet = False
-end_screen = False
-star_moving = False
-star_count = 0
-enemy_count = 0
-score = 0
-
-
-# handle player movement
 def move_player(keys):
-    '''
-    :param keys: the keys that are pressed
-    This moves the main object player, left and right
-    '''
-    if pygame.K_LEFT in keys:
+    """Interprets keyboard press to determine player movement
+    :param keys: key that user has pressed
+    """
+    if pygame.K_LEFT in keys: # moving player left
         player.x -= 5
-    if pygame.K_RIGHT in keys:
+    if pygame.K_RIGHT in keys: # moving player right
         player.x += 5
-    if player.x < 10:  # cannot move to the left of window
+    if player.x < 10:  # prevent out of bounds (left)
         player.x = 10
     if player.x > 790:
-        player.x = 790  # cannot move to the right of window
+        player.x = 790  # prevent out of bounds (right)
     camera.draw(player)
 
 
-# handle shooting star
 def shooting_star():
+    """Handles displaying a random shooting star for players to catch"""
     global star_moving
     global star_count
 
-    # 1/100 probability of star coming down
+    # determine whether or not to send down star
     send_star = random.randint(1, 100)
 
     # handle movement of star
-    if not star_moving and send_star == 1:
+    if not star_moving and send_star == 1: # 1/100 probability of star coming down
         star_moving = True
         star.x = random.randint(50, 750)
         star.y = 0
@@ -136,9 +140,10 @@ def shooting_star():
     camera.draw(str(star_count), 26, "yellow", 170, 550)
 
 
-# handle player shooting
 def missile_shoot(keys):
-
+    """Shoots a missile if user presses x
+    :param keys: key that user has pressed
+    """
     global shooting
 
     # player shoots missile by pressing x
@@ -158,13 +163,12 @@ def missile_shoot(keys):
     check_missile_hit() # check for hits
 
 
-# check if user's missile hits an enemy
 def check_missile_hit():
-
+    """Checks if user's missile has hit the enemy"""
     global enemy_count
     global score
 
-    # check if missile hit an enemy
+    # check if missile hit any of the small enemies
     for en in enemies:
         if en.bottom_touches(missile):
             missile.y = -100
@@ -178,16 +182,15 @@ def check_missile_hit():
         enemy_count += 1
         score += 1000
 
-    # if all enemies have been killed, draw new ones
+    # if all enemies have been killed, regenerate new ones
     if enemy_count > 0 and enemy_count % 37 == 0:
         enemy_count = 0
         make_enemy()
         big_enemy.y = 25
 
 
-# handle enemy shooting a bullet
 def bullet_shoot():
-
+    """Handles enemies randomly shooting a bullet to attack the player"""
     global hasBullet
     global hasBigBullet
 
@@ -221,15 +224,15 @@ def bullet_shoot():
     display_health()
 
 
-# display the current user score
 def display_score():
+    """Displays current score to user"""
     global score
     camera.draw("Score:", 26, "white", 320, 550)
     camera.draw(str(score), 26, "gray", 380, 550)
 
 
-#display the current user health
 def display_health():
+    """Displays current health to user"""
     global end_screen
 
     # handle user getting hit by bullet
@@ -255,20 +258,14 @@ def display_health():
     camera.draw("Health:", 26, "white", 600, 550)
 
 
-game_play = False
-forward = True
-forward_enemy = True
-
-
-# handle movement of enemies
 def move_enemies():
-
+    """Handles movement of enemies"""
     global forward_enemy
 
     # update forward_enemy variable depending on location
-    if enemies[35].x > 780:
+    if enemies[35].x > 780: # prevent out of bounds (right)
         forward_enemy = False
-    elif enemies[24].x < 20:
+    elif enemies[24].x < 20: # prevent out of bounds (left)
         forward_enemy = True
 
     # move all small enemies
@@ -280,8 +277,14 @@ def move_enemies():
     camera.display()
 
 
-# handle movement of a small enemy
 def move_small_enemy(number, move_forward):
+    """Handles moving a small enemy in the right direction
+  
+    :param number: index of the enemy in the list
+    :type number: int
+    :param move_forward: whether enemies are currently moving forward
+    :type move_forward: boolean
+    """
 
     # set speed in x direction depending on which row the enemy is in
     if move_forward:
@@ -304,13 +307,14 @@ def move_small_enemy(number, move_forward):
     camera.draw(enemies[number])
 
 
-# handle movement of the big enemy
 def move_big_enemy():
+    """Handles movement of the big enemy"""
     global forward
 
-    if big_enemy.x == 770:
+    # update direction appropriately
+    if big_enemy.x == 770: # check out of bounds (right)
         forward = False
-    elif big_enemy.x == 30:
+    elif big_enemy.x == 30: # check out of bounds (left)
         forward = True
 
     if forward:
@@ -322,6 +326,9 @@ def move_big_enemy():
 
 
 def tick(keys):
+    """Updates gameplay every 30ms
+    :param keys: key that user has pressed
+    """
     camera.clear('black')
     global game_play
     global end_screen
@@ -336,7 +343,7 @@ def tick(keys):
         game_play = False
     elif not game_play:  # start screen
         camera.draw("SPACE INVADERS", 60, "red", 400, 200)
-        camera.draw("Created by Kathryn Chung (kyc5rkn)", 36, "blue", 400, 300)
+        camera.draw("Created by Jason Pak", 36, "blue", 400, 300)
         camera.draw("To start, press SPACE", 30, "white", 400, 350)
         camera.draw("Press LEFT or RIGHT to move player", 30, "white", 400, 400)
         camera.draw("Press X to shoot", 30, "white", 400, 450)
