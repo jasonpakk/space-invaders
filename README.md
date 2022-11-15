@@ -1,4 +1,4 @@
-# space_invaders
+# Space Invaders
 A simplified Space Invaders clone made in Python.
 
 ![](images/demo.gif)
