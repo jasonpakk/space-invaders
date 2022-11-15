@@ -1,5 +1,3 @@
-# Kathryn Chung
-# kyc5rkn
 # A library file for simplifying pygame interaction.  You MUST place this file in the same directory as your game py files.
 
 '''This code is the original work of Luther Tychonievich, who releases it
